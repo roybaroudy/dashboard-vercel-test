@@ -722,9 +722,11 @@ function setFilter(f) {
 }
 
 function getFiltered() {
-  if (activeFilter === 'ALL') return allCalls;
-  if (activeFilter === 'CRITICAL') return allCalls.filter(c => c.priority === 'CRITICAL');
-  return allCalls.filter(c => c.services && c.services.includes(activeFilter));
+  // Always exclude closed calls
+  const open = allCalls.filter(c => c.status !== 'closed');
+  if (activeFilter === 'ALL') return open;
+  if (activeFilter === 'CRITICAL') return open.filter(c => c.priority === 'CRITICAL');
+  return open.filter(c => c.services && c.services.includes(activeFilter));
 }
 
 function updateStats() {
@@ -880,6 +882,9 @@ async function closeCall() {
 // Start
 loadCalls();
 subscribeToChanges();
+
+// Polling fallback every 15 seconds in case websocket drops
+setInterval(loadCalls, 5000);
 </script>
 </body>
 </html>
